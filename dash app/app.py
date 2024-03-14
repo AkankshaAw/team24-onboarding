@@ -14,7 +14,7 @@ import base64
  
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"])
  
-weather_app_key = "your_api_key_here"
+weather_app_key = "d276224e3f71ea68e06ef05e77dee585"
  
 with open("./postcodes 2.json", "r") as f:
     dict_postcode = json.load(f)
@@ -45,7 +45,6 @@ def home_page_content():
                 html.Div([
                     html.P("Please enter your postcode below to see the current UV index:", className='mb-1 text-center'),  # Instructional text
                 ], style={'textAlign': 'center','marginTop': '150px'}),
-                html.Div(id='icons-output', className='icons-container'),
                 html.Div([
                     dcc.Input(id='postcode-input', type='text', placeholder='Enter postcode...', className='mb-2',
                               style={'border': '2px solid #007bff', 'borderRadius': '4px', 'padding': '10px', 'height': '38px', 'display': 'inline-block', 'verticalAlign': 'middle'}),
@@ -104,6 +103,13 @@ def recommendations_page_content():
             ],style={'margin-top': '80px'})),
         ]),
         dbc.Row([
+            dbc.Col(html.Div(id='icons-output', className='icons-container'), style={'display': 'flex',
+                'justify-content':'center',
+                'align-items': 'center',
+                'padding': '20px'
+            })
+        ]),
+        dbc.Row([
             dbc.Col(width=2), 
             dbc.Col([
                 dbc.Form([
@@ -132,9 +138,6 @@ def recommendations_page_content():
         ]),
         dbc.Row([
             dbc.Col(html.Div(id='recommendations-output', className="mt-3"), width={"size": 6, "offset": 3}),
-        ]),
-        dbc.Row([
-            dbc.Col(html.Div(id='recommendation-icons', className="text-center mt-4"), width=12),
         ])
     ])
 
@@ -422,8 +425,15 @@ def update_analysis(tab):
 def get_uv_index(postcode):
     # Placeholder for the actual API call to get UV index
     # You need to replace this with the real API call
-    import random
-    return round(random.uniform(0, 10), 2)
+    postcode = str(postcode)
+    lat = dict_postcode.get(postcode, {}).get("lat")
+    long = dict_postcode.get(postcode, {}).get("long")
+    if lat is None or long is None:
+        return "Invalid postcode"
+    uvi_response = requests.get(f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={long}&exclude=hourly,daily&appid={weather_app_key}").json()
+    # Extract the UV index from the response and return it
+    uvi = uvi_response.get("current", {}).get("uvi")
+    return uvi
  
 if __name__ == '__main__':
     app.run_server(debug=True)
