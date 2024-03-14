@@ -187,6 +187,13 @@ sunsmart_text_style = {
     'flexGrow': '1'
 }
 
+sunsmart_mark_style = {
+    'fontSize': '16px',
+    'color': '#666',
+    'flexGrow': '1',
+    'padding': '150px'
+}
+
 
 def more_information_content():
     fig = px.bar(cancer_df, x='Year', y='Count', title='Count of Melanoma Each Year In Victoria')
@@ -210,7 +217,7 @@ def more_information_content():
             **The Impact of UV on Younger Individuals**
             
             Young skin is more susceptible to UV damage, which can lead to serious skin conditions in later life. It's important to educate children and young adults about the risks of UV exposure and the importance of sun protection.
-        ''', style=sunsmart_text_style),
+        ''', style=sunsmart_mark_style),
         html.Div([
             html.Img(src=b64_image('umberlla_img.png'), style=sunsmart_image_style),
             dcc.Markdown('''
@@ -313,17 +320,23 @@ def update_uv_index(n_clicks, postcode):
 def update_uv_index(n_clicks, postcode):
     if n_clicks > 0 and postcode:
         uv_index = get_uv_index(postcode)
-        return (
-            html.Div([
-                html.H4(f'UV Index for {postcode}: {uv_index}', style={'textAlign': 'center'}),
+        if uv_index == "Invalid postcode":
+            return (
+                html.Div("Invalid postcode!", style={'textAlign': 'center', 'color': 'red'}),
+                None
+            )
+        else:
+            return (
                 html.Div([
-                    Gauge(color={"gradient": True, "ranges": {"green": [0, 3], "yellow": [3, 6], "orange": [6, 8], "red": [8, 12]}},
-                          value=uv_index, max=12, min=0),
-                    dbc.Button("Would you like recommendations for this UV index?", id="navigate-recommendations-btn", className="mt-3", color="primary", style={'display': 'block', 'margin': 'auto'})
-                ], style={'textAlign': 'center'}),
-            ]),
-            str(uv_index)
-        )
+                    html.H4(f'UV Index for {postcode}: {uv_index}', style={'textAlign': 'center'}),
+                    html.Div([
+                        Gauge(color={"gradient": True, "ranges": {"green": [0, 3], "yellow": [3, 6], "orange": [6, 8], "red": [8, 12]}},
+                              value=uv_index, max=12, min=0),
+                        dbc.Button("Would you like recommendations for this UV index?", id="navigate-recommendations-btn", className="mt-3", color="primary", style={'display': 'block', 'margin': 'auto'})
+                    ], style={'textAlign': 'center'}),
+                ]),
+                str(uv_index)
+            )
     return None, None
  
  
@@ -426,10 +439,11 @@ def get_uv_index(postcode):
     # Placeholder for the actual API call to get UV index
     # You need to replace this with the real API call
     postcode = str(postcode)
+    if postcode not in dict_postcode:
+        return "Invalid postcode"
     lat = dict_postcode.get(postcode, {}).get("lat")
     long = dict_postcode.get(postcode, {}).get("long")
-    if lat is None or long is None:
-        return "Invalid postcode"
+    
     uvi_response = requests.get(f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={long}&exclude=hourly,daily&appid={weather_app_key}").json()
     # Extract the UV index from the response and return it
     uvi = uvi_response.get("current", {}).get("uvi")
