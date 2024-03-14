@@ -34,8 +34,8 @@ def home_page_content():
         dbc.Row([
            html.Div([
                 html.H1("Welcome to the Sun Safety App", className='text-center'),
-                html.P("Get informed about UV levels and learn how to protect yourself.", className='text-center')
-           ])
+                html.P("Get informed about UV levels and learn how to protect yourself.", className='text-center'),
+           ],style={'margin-top': '80px'})
         ]),
         dbc.Row([
             dbc.Col(html.Div([
@@ -43,8 +43,9 @@ def home_page_content():
             ]), width=6, style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'}),
             dbc.Col(html.Div([
                 html.Div([
-                    html.P("Please enter your postcode in the box below to see the current UV index:", className='mb-1 text-center'),  # Instructional text
+                    html.P("Please enter your postcode below to see the current UV index:", className='mb-1 text-center'),  # Instructional text
                 ], style={'textAlign': 'center','marginTop': '150px'}),
+                html.Div(id='icons-output', className='icons-container'),
                 html.Div([
                     dcc.Input(id='postcode-input', type='text', placeholder='Enter postcode...', className='mb-2',
                               style={'border': '2px solid #007bff', 'borderRadius': '4px', 'padding': '10px', 'height': '38px', 'display': 'inline-block', 'verticalAlign': 'middle'}),
@@ -82,7 +83,12 @@ app.layout = html.Div([
         color="dark",
         dark=True,
         className='navbar',  # Apply custom class for styling
-        style={'height': '80px'}  # Increase navbar height
+        style={'position': 'fixed',
+        'top': 0,
+        'left': 0,
+        'width': '100%',
+        'zIndex': 1020,  # Typically enough to stay above other content, adjust if necessary
+        'height': '80px'}  # Increase navbar height
     ),
     html.Div(id='content', style={'margin-top': '20px'}),  # Adjust margin-top for content
     html.Div(id='stored-uv-index', style={'display': 'none'}),  # Hidden div for storing UV index
@@ -95,7 +101,7 @@ def recommendations_page_content():
             dbc.Col(html.Div([
                 html.H3("Personalized Sunscreen Recommendations", className='text-center'),
                 html.P("Fill out the form below to get sunscreen recommendations tailored to your specific needs.", className='text-center mb-4'),
-            ])),
+            ],style={'margin-top': '80px'})),
         ]),
         dbc.Row([
             dbc.Col(width=2), 
@@ -136,7 +142,8 @@ sunsmart_title_style = {
     'textAlign': 'center',
     'marginTop': '20px',
     'marginBottom': '40px',
-    'color': '#333'
+    'color': '#333',
+    'margin-top': '80px'
 }
 
 recommendation_title_style = {
@@ -185,6 +192,13 @@ def more_information_content():
     
     return html.Div([
         html.H1("Understanding SunSmart and UV Protection", style=sunsmart_title_style),
+        dbc.Row([
+            dbc.Col(html.Div([
+                # Display the local GIF file using html.Img
+                html.Img(src='/assets/Hello-sun-gif.gif', style={'width': '200px',  # Adjust width as needed
+                                'height': 'auto'}),  # Keeps the aspect ratio intact
+            ]), width=12, style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'}),
+        ]),
         dcc.Markdown('''
             **SunSmart Practices and UV Radiation**
             
@@ -219,7 +233,7 @@ def more_information_content():
             ''', style=sunsmart_text_style),
         ], style=sunsmart_section_style),
         html.Div([
-            html.Img(src=b64_image('sand_water.png'), className='sunsmart-image'),
+            html.Img(src=b64_image('sand_water.png'), style=sunsmart_image_style),
             dcc.Markdown('''
                 **Be Extra Careful Near Water, Sand, and Snow:** These surfaces can reflect the sun’s rays and increase the chance of sunburn.
             ''', style=sunsmart_text_style),
@@ -240,7 +254,7 @@ def more_information_content():
     Output('content', 'children'),
     [Input('home', 'n_clicks'), Input('recommendations', 'n_clicks'), Input('more-info', 'n_clicks'),
      Input('navigate-to-recommendations', 'children')],  
-    prevent_initial_call=True
+    prevent_initial_call=False
 )
 
 def render_page_content(home_clicks, recommendations_clicks, more_info_clicks, navigate_flag):
@@ -311,9 +325,8 @@ def update_uv_index(n_clicks, postcode):
  
  
 @app.callback(
-    Output('recommendation-icons', 'children'),
-    [Input('stored-uv-index', 'children')],
-    prevent_initial_call=True
+    Output('icons-output', 'children'),  
+    [Input('stored-uv-index', 'children')] 
 )
 
 def display_recommendation_icons(uv_index):
@@ -327,7 +340,12 @@ def display_recommendation_icons(uv_index):
             return [DashIconify(icon="bi:sunglasses", width=50), DashIconify(icon="bi:cloud-sun", width=50), DashIconify(icon="bi:brightness-high", width=50), DashIconify(icon="bi:umbrella", width=50)]
         else:
             return [DashIconify(icon="bi:sunglasses", width=50), DashIconify(icon="bi:cloud-sun", width=50), DashIconify(icon="bi:brightness-high", width=50), DashIconify(icon="bi:umbrella", width=50), DashIconify(icon="bi:house", width=50)]
-    return "UV index not available"
+    return " "
+
+def update_icons(uv_index):
+    if uv_index is not None:
+        return display_recommendation_icons(uv_index)
+    return []
  
 @app.callback(
     Output('recommendations-output', 'children'),
