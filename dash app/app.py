@@ -13,8 +13,9 @@ import base64
  
  
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"])
-server = app.server
  
+server = app.server
+
 weather_app_key = "d276224e3f71ea68e06ef05e77dee585"
  
 with open("./postcodes 2.json", "r") as f:
