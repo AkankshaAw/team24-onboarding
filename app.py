@@ -14,15 +14,19 @@ import base64
  
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP, "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"])
  
+server = app.server
+
 weather_app_key = "d276224e3f71ea68e06ef05e77dee585"
+
+
  
-with open("./postcodes 2.json", "r") as f:
+with open("./postcodes_2.json", "r") as f:
     dict_postcode = json.load(f)
  
-sunscreen_df = pd.read_csv('sunscreen_data 3.csv')
-cancer_df = pd.read_csv('cancer_data 2.csv')
+sunscreen_df = pd.read_csv('sunscreen_data_3.csv')
+cancer_df = pd.read_csv('cancer_data_2.csv')
 cancer_df['Count'] = cancer_df['Count'].str.replace(',', '').astype(float)
-uv_df = pd.read_csv('uv_data 2.csv')
+uv_df = pd.read_csv('uv_data_2.csv')
  
 def b64_image(img):
     with open(img, 'rb') as f:
